@@ -78,3 +78,4 @@ yarn-error.log
 *.bak
 Thumbs.db
 Desktop.ini
+/obj/project.nuget.cache
