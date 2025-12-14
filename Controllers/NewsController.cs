@@ -1,7 +1,7 @@
 ﻿using ContentVersionsPOC.Data;
+using ContentVersionsPOC.Data.Enums;
 using ContentVersionsPOC.Data.Models;
 using Microsoft.AspNetCore.Mvc;
-using System;
 
 namespace ContentVersionsPOC.Controllers
 {
@@ -22,18 +22,52 @@ namespace ContentVersionsPOC.Controllers
             var newsContent = new NewsContent()
             {
                 VersionId = Guid.NewGuid(),
-                NewsPreamble = name
+                Heading = "News heading",
+                Text = "News text",
+                LanguageBranch = LanguageBranch.SV,
+                StartPublish = DateTime.Now
             };
             var versionedContent = _contentRepository.Create(newsContent);
             return Ok(versionedContent.Id);
         }
 
+        [HttpGet("poc")]
+        public IActionResult POC_API()
+        {
+            //Create
+            var firstVersion = new NewsContent()
+            {
+                VersionId = Guid.NewGuid(),
+                Heading = "News heading",
+                Text = "News text",
+                LanguageBranch = LanguageBranch.SV,
+                StartPublish = DateTime.Now
+            };
+            var createdContent = _contentRepository.Create(firstVersion);
+
+            //Update
+            var updatedContent = new NewsContent()
+            {
+                ContentId = createdContent.Id, //<-- Same content id as first version
+                VersionId = Guid.NewGuid(),
+                Heading = "News heading",
+                Text = "News text",
+                LanguageBranch = LanguageBranch.SV,
+                StartPublish = DateTime.Now
+            };
+            _contentRepository.Update(updatedContent);
+
+            //Delete
+            _contentRepository.Delete(updatedContent.ContentId);
+
+            return Ok();
+        }
 
         [HttpGet("all")]
         public IActionResult GetNewsContent()
         {
             var news = _contentRepository
-                .QueryCurrentVersion<NewsContent>()
+                .QueryActiveVersion<NewsContent>(LanguageBranch.SV)
                 .ToList()
                 .Select(x => x.VersionId)
                 .ToList();
@@ -46,7 +80,7 @@ namespace ContentVersionsPOC.Controllers
         {
             var fromDate = DateTime.UtcNow.AddMinutes(-1);
             var latestNews = _contentRepository
-                .QueryCurrentVersion<NewsContent>()
+                .QueryActiveVersion<NewsContent>(LanguageBranch.SV)
                 .Where(x => x.Content.Created > fromDate)
                 .Select(x => x.VersionId)
                 .ToList();

@@ -2,6 +2,8 @@
 {
     public class EventContent : ContentVersion
     {
-        public required string EventPreamble { get; set; }
+        public required string Heading { get; set; }
+        public required DateTime StartDate { get; set; }
+        public required DateTime EndDate { get; set; }
     }
 }

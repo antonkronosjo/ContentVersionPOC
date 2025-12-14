@@ -1,4 +1,5 @@
-﻿using ContentVersionsPOC.Data.Models;
+﻿using ContentVersionsPOC.Data.Enums;
+using ContentVersionsPOC.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -7,9 +8,9 @@ namespace ContentVersionsPOC.Data
     public interface IContentRepository
     {
         ContentWrapper<T> Create<T>(T contentVersion) where T : ContentVersion;
-        void Delete<T>(Guid contentId) where T : ContentVersion;
+        void Delete(Guid contentId);
         void Update<T>(T contentVersion) where T : ContentVersion;
-        IQueryable<T> QueryCurrentVersion<T>() where T : ContentVersion;
+        IQueryable<T> QueryActiveVersion<T>(LanguageBranch languageBranch) where T : ContentVersion;
     }
 
     public class ContentRepository : IContentRepository
@@ -41,7 +42,7 @@ namespace ContentVersionsPOC.Data
             return new ContentWrapper<T>(content);
         }
 
-        public void Delete<T>(Guid contentId) where T : ContentVersion
+        public void Delete(Guid contentId)
         {
             var content = _context.Content.Single(x => x.Id == contentId);
             _context.Remove(content);
@@ -56,22 +57,18 @@ namespace ContentVersionsPOC.Data
                 .Single();
 
             content.AddVersion(updatedVersion);
+            _context.Add(updatedVersion);
             _context.Update(content);
 
             _context.SaveChanges();
         }
 
 
-
-        public IQueryable<Content> QueryContent()
-        {
-            return _context.Content;
-        }
-
-        public IQueryable<T> QueryCurrentVersion<T>() where T : ContentVersion
+        public IQueryable<T> QueryActiveVersion<T>(LanguageBranch languageBranch) where T : ContentVersion
         {
             return _context.ContentVersions
                 .OfType<T>()
+                .Where(x => x.LanguageBranch == languageBranch)
                 .Include(x => x.Content)
                 .Where(x => x.Content.ActiveVersionId == x.VersionId);
         }
