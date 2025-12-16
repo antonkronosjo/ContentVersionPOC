@@ -4,6 +4,11 @@ namespace ContentVersionsPOC.Data.Models
 {
     public class EventContent : Content
     {
+        public EventContent()
+        {
+            
+        }
+
         public EventContent(Guid versionId, Language language) : base(versionId, language)
         {
             

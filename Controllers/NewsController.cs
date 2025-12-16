@@ -74,26 +74,22 @@ public class NewsController : ControllerBase
     [HttpGet("all")]
     public IActionResult GetNewsContent()
     {
-        var news = _context.Content.ToList();
-
-        //var news = _contentRepository
-        //    .QueryActiveVersions<NewsContent>(Language.SV)
-        //    .Select(x => new ContentSummary(x))
-        //    .ToList();
+        var news = _contentRepository
+            .QueryActiveVersions<NewsContent>(Language.SV)
+            .ToList();
 
         return Ok(news);
     }
 
-    //[HttpGet("latest")]
-    //public IActionResult GetLatestNews()
-    //{
-    //    var fromDate = DateTime.UtcNow.AddMinutes(-1);
-    //    var latestNews = _contentRepository
-    //        .QueryActiveVersions<NewsContent>(Language.SV)
-    //        //.Where(x => x.Created > fromDate)
-    //        .Select(x => new ContentSummary(x))
-    //        .ToList();
+    [HttpGet("latest")]
+    public IActionResult GetLatestNews()
+    {
+        var fromDate = DateTime.UtcNow.AddMinutes(-1);
+        var latestNews = _contentRepository
+            .QueryActiveVersions<NewsContent>(Language.SV)
+            .Where(x => x.Created > fromDate)
+            .ToList();
 
-    //    return Ok(latestNews);
-    //}
+        return Ok(latestNews);
+    }
 }

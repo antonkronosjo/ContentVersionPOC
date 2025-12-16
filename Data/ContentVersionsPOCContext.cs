@@ -17,8 +17,8 @@ namespace ContentVersionsPOC.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Content>().ToTable("ContentVersions");
-            modelBuilder.Entity<NewsContent>().ToTable("News");
-            modelBuilder.Entity<EventContent>().ToTable("Events");
+            modelBuilder.Entity<NewsContent>().HasBaseType<Content>().ToTable("News");
+            modelBuilder.Entity<EventContent>().HasBaseType<Content>().ToTable("Events");
 
             modelBuilder.Entity<ContentRoot>().HasKey(x => x.ContentId);
 
@@ -33,6 +33,7 @@ namespace ContentVersionsPOC.Data
                 .HasOne(m => m.ActiveVersion)
                 .WithMany()
                 .HasForeignKey(m => m.ActiveVersionId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);

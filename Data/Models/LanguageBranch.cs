@@ -6,6 +6,10 @@ namespace ContentVersionsPOC.Data.Models;
 
 public class LanguageBranch
 {
+    public LanguageBranch()
+    {
+        
+    }
     public LanguageBranch(Guid contentId, Language language)
     {
         ContentId = contentId;
@@ -14,10 +18,10 @@ public class LanguageBranch
 
     public Guid ContentId { get; set; }
     public Language Language { get; set; }
-    public Guid ActiveVersionId { get; set; }
+    public Guid? ActiveVersionId { get; set; }
 
     [JsonIgnore]
-    public Content ActiveVersion { get; set; }
+    public Content? ActiveVersion { get; set; }
 
     [JsonIgnore]
     public ICollection<Content> Versions { get; set; } = new List<Content>();
@@ -30,6 +34,7 @@ public class LanguageBranch
             return;
         
         ActiveVersionId = content.VersionId;
-        ActiveVersion = content;        
+        ActiveVersion = content;
+        content.ContentId = ContentId;
     }
 }

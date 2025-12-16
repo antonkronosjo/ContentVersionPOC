@@ -5,6 +5,10 @@ namespace ContentVersionsPOC.Data.Models;
 
 public abstract class Content
 {
+    public Content()
+    {
+            
+    }
     protected Content(Guid versionId, Language language)
     {
         VersionId = versionId;
@@ -13,6 +17,8 @@ public abstract class Content
     public Guid VersionId { get; set; }
     public Guid ContentId { get; set; }
     public Language Language { get; set; }
+
+    [JsonIgnore]
     public virtual LanguageBranch LanguageBranch { get; set; }
     public DateTime Created { get; set; }
 }

@@ -38,13 +38,29 @@ public class ContentRepository : IContentRepository
     /// </summary>
     public T Create<T>(T initialVersion, Language language) where T : Content
     {
-        var contentId = Guid.NewGuid();
-        initialVersion.ContentId = contentId;
-        var contentRoot = new ContentRoot(contentId);
-        contentRoot.AddVersion(initialVersion, language);
-        _context.ContentRoots.Add(contentRoot);
-        _context.SaveChanges();
-        return initialVersion;
+        using var transaction = _context.Database.BeginTransaction();
+        try
+        {
+            var contentRoot = new ContentRoot(Guid.NewGuid());
+            _context.Add(contentRoot);
+
+            var languageBranch = contentRoot.CreateLanguageBranch(language);
+            _context.Add(languageBranch);
+            _context.SaveChanges();
+
+            initialVersion.ContentId = contentRoot.ContentId;
+            languageBranch.AddVersion(initialVersion);
+            _context.Add(initialVersion);
+            _context.SaveChanges();
+
+            transaction.Commit();
+            return initialVersion;
+        }
+        catch
+        {
+            transaction.RollbackAsync();
+            throw;
+        }
     }
 
     /// <summary>
@@ -94,14 +110,9 @@ public class ContentRepository : IContentRepository
     /// </summary>
     public IQueryable<T> QueryActiveVersions<T>(Language language) where T : Content
     {
-        //return _context.LanguageBranches
-        //    .Where(x => x.Language == language)
-        //    .Include(x => x.ActiveVersion)
-        //    .OfType<T>();
         return _context.Content.OfType<T>()
-            .Include(x => x.LanguageBranch);
-            //.Where(x => x.LanguageBranch.ActiveVersionId == x.VersionId);
-       // return _context.Content.OfType<T>().Where(v => v.LanguageBranch.ActiveVersionId == v.VersionId);
-
+            .Where(x => x.Language == language)
+            .Include(x => x.LanguageBranch)
+            .Where(x => x.LanguageBranch.ActiveVersionId == x.VersionId);
     }
 }
