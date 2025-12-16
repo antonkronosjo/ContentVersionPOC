@@ -32,6 +32,8 @@ public class ContentWrapper<T> where T : ContentVersion
     }
 
     public Guid Id => _content.Id;
-
+    public DateTime Created => _content.Created;
+    public Guid? ActiveVersionId => ActiveVersion?.VersionId;
+    public T? ActiveVersion => (T?)Versions.OrderByDescending(x => x.Created).FirstOrDefault();
     public IEnumerable<T> Versions => _content.Versions.OfType<T>();
 }

@@ -1,4 +1,5 @@
 using ContentVersionsPOC.Data;
+using ContentVersionsPOC.Data.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,6 +1,6 @@
-﻿using ContentVersionsPOC.Data;
-using ContentVersionsPOC.Data.Enums;
+﻿using ContentVersionsPOC.Data.Enums;
 using ContentVersionsPOC.Data.Models;
+using ContentVersionsPOC.Data.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ContentVersionsPOC.Controllers
@@ -17,22 +17,33 @@ namespace ContentVersionsPOC.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddNewsContent([FromBody] string name)
+        public IActionResult AddNewsContent([FromQuery] string heading)
         {
             var newsContent = new NewsContent()
             {
                 VersionId = Guid.NewGuid(),
-                Heading = "News heading",
+                Heading = heading,
                 Text = "News text",
                 LanguageBranch = LanguageBranch.SV,
                 StartPublish = DateTime.Now
             };
             var versionedContent = _contentRepository.Create(newsContent);
-            return Ok(versionedContent.Id);
+            return Ok(versionedContent);
         }
 
-        [HttpGet("poc")]
-        public IActionResult POC_API()
+        [HttpPut]
+        public IActionResult UpdateNewsContent([FromQuery]Guid contentId, [FromBody]Dictionary<string, string?> updates)
+        {
+            var updatedContent = _contentRepository.Update<NewsContent>(contentId, updates);
+
+            // Can be used like this =>
+            //_contentRepository.Update<EventContent>(contentId, updates);
+            //_contentRepository.Update<ContentVersion>(contentId, updates);
+
+            return Ok(updatedContent);
+        }
+
+        private IActionResult POC_API()
         {
             //Create
             var firstVersion = new NewsContent()
@@ -55,7 +66,8 @@ namespace ContentVersionsPOC.Controllers
                 LanguageBranch = LanguageBranch.SV,
                 StartPublish = DateTime.Now
             };
-            _contentRepository.Update(updatedContent);
+
+            _contentRepository.Update(createdContent.Id, updatedContent);
 
             //Delete
             _contentRepository.Delete(updatedContent.ContentId);
@@ -68,8 +80,6 @@ namespace ContentVersionsPOC.Controllers
         {
             var news = _contentRepository
                 .QueryActiveVersion<NewsContent>(LanguageBranch.SV)
-                .ToList()
-                .Select(x => x.VersionId)
                 .ToList();
 
             return Ok(news);
@@ -82,7 +92,6 @@ namespace ContentVersionsPOC.Controllers
             var latestNews = _contentRepository
                 .QueryActiveVersion<NewsContent>(LanguageBranch.SV)
                 .Where(x => x.Content.Created > fromDate)
-                .Select(x => x.VersionId)
                 .ToList();
 
             return Ok(latestNews);

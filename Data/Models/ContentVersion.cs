@@ -1,4 +1,5 @@
 ﻿using ContentVersionsPOC.Data.Enums;
+using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models;
 
@@ -12,7 +13,10 @@ public abstract class ContentVersion
     public required Guid VersionId { get; set; }
     public required LanguageBranch LanguageBranch { get; set; }
     public Guid ContentId { get; set; }
+
+    [JsonIgnore]
     public Content Content { get; set; }
+
     public DateTime Created { get; set; }
     public DateTime? StartPublish { get; set; }
     public DateTime? StopPublish { get; set; }

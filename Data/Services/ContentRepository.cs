@@ -1,15 +1,18 @@
 ﻿using ContentVersionsPOC.Data.Enums;
+using ContentVersionsPOC.Data.Extensions;
 using ContentVersionsPOC.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace ContentVersionsPOC.Data
+namespace ContentVersionsPOC.Data.Services
 {
     public interface IContentRepository
     {
-        ContentWrapper<T> Create<T>(T contentVersion) where T : ContentVersion;
+        ContentWrapper<T> Get<T>(Guid contentId) where T : ContentVersion;
+        ContentWrapper<T> Create<T>(T initialVersion) where T : ContentVersion;
+        ContentWrapper<T> Update<T>(Guid contentId, T contentVersion) where T : ContentVersion;
+        ContentWrapper<T> Update<T>(Guid contentId, Dictionary<string, string?> updates) where T : ContentVersion;
         void Delete(Guid contentId);
-        void Update<T>(T contentVersion) where T : ContentVersion;
         IQueryable<T> QueryActiveVersion<T>(LanguageBranch languageBranch) where T : ContentVersion;
     }
 
@@ -22,17 +25,26 @@ namespace ContentVersionsPOC.Data
             _context = context;
         }
 
-        public ContentWrapper<T> Create<T>(T contentVersion) where T : ContentVersion
+        public ContentWrapper<T> Get<T>(Guid contentId) where T : ContentVersion 
+        {
+            var content = _context.Content
+                .Include(x => x.Versions)
+                .Single(x => x.Id == contentId);
+
+            return new ContentWrapper<T>(content);
+        }
+
+        public ContentWrapper<T> Create<T>(T initialVersion) where T : ContentVersion
         {
             using var transaction = _context.Database.BeginTransaction();
 
-            var content = new Content() { Id = contentVersion.ContentId };
+            var content = new Content() { Id = initialVersion.ContentId };
 
             _context.Add(content);
             _context.SaveChanges();
 
-            content.AddVersion(contentVersion);
-            _context.Add(contentVersion);
+            content.AddVersion(initialVersion);
+            _context.Add(initialVersion);
 
             _context.Update(content); ;
             _context.SaveChanges();
@@ -49,18 +61,34 @@ namespace ContentVersionsPOC.Data
             _context.SaveChanges();
         }
 
-        public void Update<T>(T updatedVersion) where T : ContentVersion
+        public ContentWrapper<T> Update<T>(Guid contentId, T updatedVersion) where T : ContentVersion
         {
             var content = _context.Content
-                .Where(x => x.Id == updatedVersion.ContentId)
+                .Where(x => x.Id == contentId)
                 .Include(x => x.Versions)
                 .Single();
-
+            
             content.AddVersion(updatedVersion);
+
             _context.Add(updatedVersion);
             _context.Update(content);
 
             _context.SaveChanges();
+
+            return new ContentWrapper<T>(content);
+        }
+
+        public ContentWrapper<T> Update<T>(Guid contentId, Dictionary<string, string?> updates) where T : ContentVersion
+        {
+            var test = Get<T>(contentId);
+            var activeVersion = Get<T>(contentId).ActiveVersion;
+            if (activeVersion == null)
+                throw new Exception("Havent considered what should happen here yet...");
+
+            var updatedVersion = activeVersion.ApplyUpdates<T>(updates);
+            updatedVersion.VersionId = Guid.NewGuid();
+
+            return Update<T>(contentId, updatedVersion);
         }
 
 
