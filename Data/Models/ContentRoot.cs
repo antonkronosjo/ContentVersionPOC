@@ -8,6 +8,7 @@ public class ContentRoot
     {
         
     }
+
     public ContentRoot(Guid contentId)
     {
         ContentId = contentId;
@@ -20,24 +21,19 @@ public class ContentRoot
     public DateTime StopPublish { get; set; }
     public ICollection<LanguageBranch> LanguageBranches { get; set; } = new List<LanguageBranch>();
 
-    public LanguageBranch AddVersion<T>(T content, Language language) where T : Content
+    /// <summary>
+    /// Add content for given language. Returns language branch if it does not exist before.
+    /// </summary>
+    public LanguageBranch? AddNewLanguageBranchIfNotExist(Language language)
     {
-        var languageBranch = GetExistingOrAddBranch(language);
-        languageBranch.AddVersion(content);
-        return languageBranch;
-    }
-
-    public LanguageBranch GetExistingOrAddBranch(Language language) {
-        var languageBranch = LanguageBranches.SingleOrDefault(x => x.Language == language);
+        var languageBranch = LanguageBranches.FirstOrDefault(x => x.Language == language);
         if (languageBranch != null)
-            return languageBranch;
+            return null;
 
-        languageBranch = new LanguageBranch(this.ContentId, language);
-        LanguageBranches.Add(languageBranch);
-        return languageBranch;
+        return AddNewLanguageBranch(language);
     }
 
-    public LanguageBranch CreateLanguageBranch(Language language) {
+    public LanguageBranch AddNewLanguageBranch(Language language) {
         var languageBranch = new LanguageBranch(this.ContentId, language);
         LanguageBranches.Add(languageBranch);
         return languageBranch;

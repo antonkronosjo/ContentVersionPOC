@@ -18,7 +18,7 @@ namespace ContentVersionsPOC.Data.Extensions
                 if (instanceProperty == null)
                     throw new KeyNotFoundException($"Content of type {typeof(T)} does not contain a property named \"{propertyToUpdate.Key}\"");
 
-                if (instanceProperty.IsDefined(typeof(ContentPropertyMetaData), inherit: false))
+                if (!instanceProperty.IsDefined(typeof(ContentPropertyMetaData), inherit: false))
                     throw new UnauthorizedAccessException($"Property \"{propertyToUpdate.Key}\" is not editable");
 
                 if (instanceProperty.PropertyType.IsAssignableFrom(propertyToUpdate.Value?.GetType()))

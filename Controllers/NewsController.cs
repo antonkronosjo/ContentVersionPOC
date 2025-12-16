@@ -12,12 +12,10 @@ namespace ContentVersionsPOC.Controllers;
 public class NewsController : ControllerBase
 {
     IContentRepository _contentRepository;
-    ContentVersionsPOCContext _context;
 
-    public NewsController(IContentRepository contentRepository, ContentVersionsPOCContext context)
+    public NewsController(IContentRepository contentRepository)
     {
         _contentRepository = contentRepository;
-        _context = context;
     }
 
     [HttpPost]
@@ -28,7 +26,7 @@ public class NewsController : ControllerBase
             Heading = heading,
             Text = "News text"
         };
-        var createdContent = _contentRepository.Create(newsContent, Language.SV);
+        var createdContent = _contentRepository.Create(newsContent);
         return Ok(createdContent);
     }
 
@@ -50,20 +48,18 @@ public class NewsController : ControllerBase
         var firstVersion = new NewsContent(Guid.NewGuid(), Language.SV)
         {
             Heading = "News heading 1",
-            Text = "News text 1",
-            Language = Language.SV
+            Text = "News text 1"
         };
-        var createdContent = _contentRepository.Create(firstVersion, Language.SV);
+        var createdContent = _contentRepository.Create(firstVersion);
 
         //Update
         var updatedContent = new NewsContent(Guid.NewGuid(), Language.SV)
         {
             Heading = "News heading 2",
-            Text = "News text 2",
-            Language = Language.SV
+            Text = "News text 2"
         };
 
-        _contentRepository.Update(createdContent.ContentId, Language.SV, updatedContent);
+        _contentRepository.Update(createdContent.ContentId, updatedContent);
 
         //Delete
         _contentRepository.Delete(updatedContent.ContentId);
