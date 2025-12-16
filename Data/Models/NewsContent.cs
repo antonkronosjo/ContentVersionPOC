@@ -1,16 +1,23 @@
-﻿using ContentVersionsPOC.Data.Attributes;
+﻿using ContentVersionsPOC.Attributes;
+using ContentVersionsPOC.Data.Enums;
 
 namespace ContentVersionsPOC.Data.Models
 {
-    public class NewsContent : ContentVersion
+    public class NewsContent : Content
     {
-        [EditableProperty]
+
+        public NewsContent(Guid versionId, Language language) : base(versionId, language)
+        {
+            
+        }
+
+        [ContentPropertyMetaData(editable: true)]
         public required string Heading { get; set; }
 
-        [EditableProperty]
+        [ContentPropertyMetaData(editable: true)]
         public string? Lead { get; set; }
 
-        [EditableProperty]
+        [ContentPropertyMetaData(editable: true)]
         public required string Text { get; set; }
     }
 }

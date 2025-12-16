@@ -1,18 +1,35 @@
 ﻿using ContentVersionsPOC.Data.Enums;
+using ContentVersionsPOC.Extensions;
+using System.Text.Json.Serialization;
 
-namespace ContentVersionsPOC.Data.Models
+namespace ContentVersionsPOC.Data.Models;
+
+public class LanguageBranch
 {
-    public class LanguageBranch
+    public LanguageBranch(Guid contentId, Language language)
     {
-        public Guid ContentId { get; set; }
-        public ContentRoot ContentRoot { get; set; }
-        public LanguageBranchEnum LanguageBranchEnum { get; set; } // Part of Composite Key
+        ContentId = contentId;
+        Language = language;
+    }
 
-        // The current "Live" version pointer
-        public Guid ActiveVersionId { get; set; }
-        public virtual ContentVersion ActiveVersion { get; set; }
+    public Guid ContentId { get; set; }
+    public Language Language { get; set; }
+    public Guid ActiveVersionId { get; set; }
 
-        // NEW: The collection of historical versions for ONLY this language
-        public virtual ICollection<ContentVersion> Versions { get; set; } = new List<ContentVersion>();
+    [JsonIgnore]
+    public Content ActiveVersion { get; set; }
+
+    [JsonIgnore]
+    public ICollection<Content> Versions { get; set; } = new List<Content>();
+
+    public void AddVersion<T>(T content, bool setAsActive = true) where T : Content
+    {
+        Versions.AddIfNotAny(content, x => x.VersionId == content.VersionId);
+
+        if (!setAsActive)
+            return;
+        
+        ActiveVersionId = content.VersionId;
+        ActiveVersion = content;        
     }
 }

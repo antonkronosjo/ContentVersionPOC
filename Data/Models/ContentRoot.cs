@@ -1,36 +1,34 @@
-﻿namespace ContentVersionsPOC.Data.Models;
+﻿using ContentVersionsPOC.Data.Enums;
+
+namespace ContentVersionsPOC.Data.Models;
 
 public class ContentRoot
 {
-    public ContentRoot()
+    public ContentRoot(Guid contentId)
     {
+        ContentId = contentId;
         Created = DateTime.UtcNow;
     }
 
-    public required Guid Id { get; set; }
+    public Guid ContentId { get; set; }
     public DateTime Created { get; set; }
+    public DateTime StartPublish { get; set; }
+    public DateTime StopPublish { get; set; }
+    public ICollection<LanguageBranch> LanguageBranches { get; set; } = new List<LanguageBranch>();
 
-    // Each language entry acts as a folder for that language's versions
-    public virtual ICollection<LanguageBranch> LanguageMappings { get; set; } = new List<LanguageBranch>();
-
-    //public void AddVersion(ContentVersion version)
-    //{
-    //    version.ContentId = this.Id;
-    //    version.Content = this;
-    //    Versions.Add(version);
-    //    //ActiveVersionId = version.VersionId;
-    //    //ActiveVersion = version;
-    //}
-}
-public class ContentWrapper<T> where T : ContentVersion
-{
-    private readonly ContentRoot _content;
-
-    public ContentWrapper(ContentRoot content)
+    public void AddVersion<T>(T content, Language language) where T : Content
     {
-        _content = content;
+        var languageBranch = GetExistingOrCreateNewLanguageBranch(language);
+        languageBranch.AddVersion(content);
     }
 
-    public Guid Id => _content.Id;
-    public DateTime Created => _content.Created;
+    private LanguageBranch GetExistingOrCreateNewLanguageBranch(Language language) {
+        var languageBranch = LanguageBranches.SingleOrDefault(x => x.Language == language);
+        if (languageBranch != null)
+            return languageBranch;
+
+        languageBranch = new LanguageBranch(this.ContentId, language);
+        LanguageBranches.Add(languageBranch);
+        return languageBranch;
+    }
 }
