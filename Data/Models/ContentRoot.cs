@@ -1,4 +1,5 @@
 ﻿using ContentVersionsPOC.Data.Enums;
+using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models;
 
@@ -19,6 +20,8 @@ public class ContentRoot
     public DateTime Created { get; set; }
     public DateTime StartPublish { get; set; }
     public DateTime StopPublish { get; set; }
+
+    [JsonIgnore]
     public ICollection<LanguageBranch> LanguageBranches { get; set; } = new List<LanguageBranch>();
 
     /// <summary>

@@ -1,5 +1,4 @@
 ﻿using ContentVersionsPOC.Attributes;
-using ContentVersionsPOC.Data.Models;
 using System.Reflection;
 
 namespace ContentVersionsPOC.Data.Extensions
@@ -18,9 +17,11 @@ namespace ContentVersionsPOC.Data.Extensions
                 if (instanceProperty == null)
                     throw new KeyNotFoundException($"Content of type {typeof(T)} does not contain a property named \"{propertyToUpdate.Key}\"");
 
-                if (!instanceProperty.IsDefined(typeof(ContentPropertyMetaData), inherit: false))
+                var attr = instanceProperty.GetCustomAttribute<ContentPropertyMetaData>(inherit: false);
+                if (attr == null || !attr.Editable)
                     throw new UnauthorizedAccessException($"Property \"{propertyToUpdate.Key}\" is not editable");
 
+                //Todo: add mapping logic to handle more complex types
                 if (instanceProperty.PropertyType.IsAssignableFrom(propertyToUpdate.Value?.GetType()))
                     instanceProperty.SetValue(content, propertyToUpdate.Value);
                 else if (instanceProperty.PropertyType.IsValueType)

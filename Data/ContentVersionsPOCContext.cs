@@ -24,15 +24,19 @@ namespace ContentVersionsPOC.Data
 
             modelBuilder.Entity<Content>().HasKey(x => x.VersionId);
             modelBuilder.Entity<Content>()
-                .HasOne(v => v.LanguageBranch)
-                .WithMany(m => m.Versions)
-                .HasForeignKey(v => new { v.ContentId, v.Language });
-
-            modelBuilder.Entity<LanguageBranch>().HasKey(m => new { m.ContentId, m.Language });
-            modelBuilder.Entity<LanguageBranch>()
-                .HasOne(m => m.ActiveVersion)
+                .HasOne(x => x.LanguageBranch)
+                .WithMany(x => x.Versions)
+                .HasForeignKey(x => new { x.ContentId, x.Language });
+            modelBuilder.Entity<Content>()
+                .HasOne(v => v.ContentRoot)
                 .WithMany()
-                .HasForeignKey(m => m.ActiveVersionId)
+                .HasForeignKey(x => x.ContentId);
+
+            modelBuilder.Entity<LanguageBranch>().HasKey(x => new { x.ContentId, x.Language });
+            modelBuilder.Entity<LanguageBranch>()
+                .HasOne(x => x.ActiveVersion)
+                .WithMany()
+                .HasForeignKey(x => x.ActiveVersionId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
