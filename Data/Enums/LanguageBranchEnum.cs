@@ -1,6 +1,6 @@
 ﻿namespace ContentVersionsPOC.Data.Enums
 {
-    public enum LanguageBranch
+    public enum LanguageBranchEnum
     {
         SV = 0,
         EN = 1

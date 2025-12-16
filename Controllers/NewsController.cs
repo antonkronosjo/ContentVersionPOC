@@ -24,17 +24,17 @@ namespace ContentVersionsPOC.Controllers
                 VersionId = Guid.NewGuid(),
                 Heading = heading,
                 Text = "News text",
-                LanguageBranch = LanguageBranch.SV,
+                LanguageBranch = LanguageBranchEnum.SV,
                 StartPublish = DateTime.Now
             };
-            var versionedContent = _contentRepository.Create(newsContent);
+            var versionedContent = _contentRepository.Create(newsContent, LanguageBranchEnum.SV);
             return Ok(versionedContent);
         }
 
         [HttpPut]
         public IActionResult UpdateNewsContent([FromQuery]Guid contentId, [FromBody]Dictionary<string, string?> updates)
         {
-            var updatedContent = _contentRepository.Update<NewsContent>(contentId, updates);
+            var updatedContent = _contentRepository.Update<NewsContent>(contentId, LanguageBranchEnum.SV, updates);
 
             // Can be used like this =>
             //_contentRepository.Update<EventContent>(contentId, updates);
@@ -51,23 +51,23 @@ namespace ContentVersionsPOC.Controllers
                 VersionId = Guid.NewGuid(),
                 Heading = "News heading",
                 Text = "News text",
-                LanguageBranch = LanguageBranch.SV,
+                LanguageBranch = LanguageBranchEnum.SV,
                 StartPublish = DateTime.Now
             };
-            var createdContent = _contentRepository.Create(firstVersion);
+            var createdContent = _contentRepository.Create(firstVersion, LanguageBranchEnum.SV);
 
             //Update
             var updatedContent = new NewsContent()
             {
-                ContentId = createdContent.Id, //<-- Same content id as first version
+                ContentId = createdContent.ContentId, //<-- Same content id as first version
                 VersionId = Guid.NewGuid(),
                 Heading = "News heading",
                 Text = "News text",
-                LanguageBranch = LanguageBranch.SV,
+                LanguageBranch = LanguageBranchEnum.SV,
                 StartPublish = DateTime.Now
             };
 
-            _contentRepository.Update(createdContent.Id, updatedContent);
+            _contentRepository.Update(createdContent.ContentId, LanguageBranchEnum.SV, updatedContent);
 
             //Delete
             _contentRepository.Delete(updatedContent.ContentId);
@@ -79,7 +79,7 @@ namespace ContentVersionsPOC.Controllers
         public IActionResult GetNewsContent()
         {
             var news = _contentRepository
-                .QueryActiveVersion<NewsContent>(LanguageBranch.SV)
+                .QueryActiveVersion<NewsContent>(LanguageBranchEnum.SV)
                 .ToList();
 
             return Ok(news);
@@ -90,8 +90,8 @@ namespace ContentVersionsPOC.Controllers
         {
             var fromDate = DateTime.UtcNow.AddMinutes(-1);
             var latestNews = _contentRepository
-                .QueryActiveVersion<NewsContent>(LanguageBranch.SV)
-                .Where(x => x.Content.Created > fromDate)
+                .QueryActiveVersion<NewsContent>(LanguageBranchEnum.SV)
+                .Where(x => x.Created > fromDate)
                 .ToList();
 
             return Ok(latestNews);

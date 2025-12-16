@@ -8,12 +8,12 @@ namespace ContentVersionsPOC.Data.Services
 {
     public interface IContentRepository
     {
-        ContentWrapper<T> Get<T>(Guid contentId) where T : ContentVersion;
-        ContentWrapper<T> Create<T>(T initialVersion) where T : ContentVersion;
-        ContentWrapper<T> Update<T>(Guid contentId, T contentVersion) where T : ContentVersion;
-        ContentWrapper<T> Update<T>(Guid contentId, Dictionary<string, string?> updates) where T : ContentVersion;
+        T Get<T>(Guid contentId, Enums.LanguageBranchEnum languageBranch) where T : ContentVersion;
+        T Create<T>(T initialVersion, Enums.LanguageBranchEnum languageBranch) where T : ContentVersion;
+        T Update<T>(Guid contentId, Enums.LanguageBranchEnum languageBranch, T contentVersion) where T : ContentVersion;
+        T Update<T>(Guid contentId, Enums.LanguageBranchEnum languageBranch, Dictionary<string, string?> updates) where T : ContentVersion;
         void Delete(Guid contentId);
-        IQueryable<T> QueryActiveVersion<T>(LanguageBranch languageBranch) where T : ContentVersion;
+        IQueryable<T> QueryActiveVersion<T>(Enums.LanguageBranchEnum languageBranch) where T : ContentVersion;
     }
 
     public class ContentRepository : IContentRepository
@@ -25,33 +25,41 @@ namespace ContentVersionsPOC.Data.Services
             _context = context;
         }
 
-        public ContentWrapper<T> Get<T>(Guid contentId) where T : ContentVersion 
+        public T Get<T>(Guid contentId, Enums.LanguageBranchEnum languageBranch) where T : ContentVersion 
         {
-            var content = _context.Content
-                .Include(x => x.Versions)
-                .Single(x => x.Id == contentId);
-
-            return new ContentWrapper<T>(content);
+            return QueryActiveVersion<T>(languageBranch).Single(x => x.ContentId == contentId);
         }
 
-        public ContentWrapper<T> Create<T>(T initialVersion) where T : ContentVersion
+        public T Create<T>(T initialVersion, Enums.LanguageBranchEnum languageBranch) where T : ContentVersion
         {
             using var transaction = _context.Database.BeginTransaction();
+            // 1. Create the Identity (Root)
+            var root = new ContentRoot
+            {
+                Id = Guid.NewGuid(),
+                Created = DateTime.UtcNow
+            };
 
-            var content = new Content() { Id = initialVersion.ContentId };
+            // 3. Create the LanguageMapping to link Root + Language to this Version
+            var mapping = new Models.LanguageBranch
+            {
+                LanguageBranchEnum = languageBranch,
+                ActiveVersion = initialVersion // This version is now the "Active" one
+            };
 
-            _context.Add(content);
-            _context.SaveChanges();
+            // 4. Link everything to the Root
+            // Because of the hierarchical setup, we add the mapping to the root, 
+            // and the version to the mapping.
+            mapping.Versions.Add(initialVersion);
+            root.LanguageMappings.Add(mapping);
 
-            content.AddVersion(initialVersion);
-            _context.Add(initialVersion);
-
-            _context.Update(content); ;
-            _context.SaveChanges();
+            // 5. Save to Database
+            // Adding the 'root' will add the entire graph (Mapping + Version)
+            _context.Content.Add(root);
 
             CommitTransaction(transaction);
 
-            return new ContentWrapper<T>(content);
+            return initialVersion;
         }
 
         public void Delete(Guid contentId)
@@ -61,44 +69,51 @@ namespace ContentVersionsPOC.Data.Services
             _context.SaveChanges();
         }
 
-        public ContentWrapper<T> Update<T>(Guid contentId, T updatedVersion) where T : ContentVersion
+        public T Update<T>(Guid contentId, Enums.LanguageBranchEnum languageBranch, T updatedVersion) where T : ContentVersion
         {
-            var content = _context.Content
-                .Where(x => x.Id == contentId)
-                .Include(x => x.Versions)
-                .Single();
-            
-            content.AddVersion(updatedVersion);
+            // 1. Fetch the Root with its specific LanguageMapping and its current versions
+            var root = _context.Content
+                .Include(r => r.LanguageMappings)
+                    .ThenInclude(m => m.Versions)
+                .FirstOrDefault(r => r.Id == contentId)
+                ?? throw new KeyNotFoundException($"ContentRoot with ID {contentId} not found.");
 
-            _context.Add(updatedVersion);
-            _context.Update(content);
+            // 2. Find the mapping for the specific language
+            var mapping = root.LanguageMappings
+                .FirstOrDefault(m => m.LanguageBranchEnum == languageBranch)
+                ?? throw new KeyNotFoundException($"Language mapping for '{languageBranch}' not found.");
 
+            // 5. Update the pointer to make this version "Active"
+            mapping.Versions.Add(updatedVersion);
+            mapping.ActiveVersion = updatedVersion;
+
+            // 6. Persist changes
+            // EF Core tracks the 'root' object graph and will insert the new version 
+            // and update the LanguageMapping table in a single transaction.
             _context.SaveChanges();
 
-            return new ContentWrapper<T>(content);
+            return updatedVersion; ;
         }
 
-        public ContentWrapper<T> Update<T>(Guid contentId, Dictionary<string, string?> updates) where T : ContentVersion
+        public T Update<T>(Guid contentId, Enums.LanguageBranchEnum languageBranch, Dictionary<string, string?> updates) where T : ContentVersion
         {
-            var test = Get<T>(contentId);
-            var activeVersion = Get<T>(contentId).ActiveVersion;
+            var activeVersion = Get<T>(contentId, languageBranch);
             if (activeVersion == null)
                 throw new Exception("Havent considered what should happen here yet...");
 
             var updatedVersion = activeVersion.ApplyUpdates<T>(updates);
             updatedVersion.VersionId = Guid.NewGuid();
 
-            return Update<T>(contentId, updatedVersion);
+            return Update<T>(contentId, languageBranch, updatedVersion);
         }
 
 
-        public IQueryable<T> QueryActiveVersion<T>(LanguageBranch languageBranch) where T : ContentVersion
+        public IQueryable<T> QueryActiveVersion<T>(Enums.LanguageBranchEnum languageBranch) where T : ContentVersion
         {
-            return _context.ContentVersions
-                .OfType<T>()
-                .Where(x => x.LanguageBranch == languageBranch)
-                .Include(x => x.Content)
-                .Where(x => x.Content.ActiveVersionId == x.VersionId);
+            return _context.LanguageMappings
+                .Where(x => x.LanguageBranchEnum == languageBranch)
+                .Include(x => x.ActiveVersion)
+                .OfType<T>();
         }
 
         private void CommitTransaction(IDbContextTransaction transaction)
