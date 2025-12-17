@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models;
 
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "contentType")]
+[JsonDerivedType(typeof(NewsContent), nameof(NewsContent))]
+[JsonDerivedType(typeof(EventContent), nameof(EventContent))]
 public abstract class Content
 {
     public Content()

@@ -1,4 +1,5 @@
 ﻿using ContentVersionsPOC.Data.Enums;
+using System.Net.Mime;
 using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models;
@@ -10,7 +11,7 @@ public class ContentRoot
         
     }
 
-    public ContentRoot(Guid contentId)
+    public ContentRoot(Guid contentId, Type contentType)
     {
         ContentId = contentId;
         Created = DateTime.UtcNow;
@@ -18,8 +19,8 @@ public class ContentRoot
 
     public Guid ContentId { get; set; }
     public DateTime Created { get; set; }
-    public DateTime StartPublish { get; set; }
-    public DateTime StopPublish { get; set; }
+    public DateTime? StartPublish { get; set; }
+    public DateTime? StopPublish { get; set; }
 
     [JsonIgnore]
     public ICollection<LanguageBranch> LanguageBranches { get; set; } = new List<LanguageBranch>();

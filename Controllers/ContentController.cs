@@ -4,21 +4,22 @@ using ContentVersionsPOC.Data.Models;
 using ContentVersionsPOC.Data.Summaries;
 using ContentVersionsPOC.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContentVersionsPOC.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-public class NewsController : ControllerBase
+[Route("api/content")]
+public class ContentController : ControllerBase
 {
     IContentRepository _contentRepository;
 
-    public NewsController(IContentRepository contentRepository)
+    public ContentController(IContentRepository contentRepository)
     {
         _contentRepository = contentRepository;
     }
 
-    [HttpPost]
+    [HttpPost("/news/create")]
     public IActionResult AddNewsContent([FromQuery] string heading)
     {
         var newsContent = new NewsContent(Guid.NewGuid(), Language.SV)
@@ -30,7 +31,20 @@ public class NewsController : ControllerBase
         return Ok(createdContent);
     }
 
-    [HttpPut]
+    [HttpPost("/events/create")]
+    public IActionResult AddEventContent([FromQuery] string heading)
+    {
+        var newsContent = new EventContent(Guid.NewGuid(), Language.SV)
+        {
+            Heading = heading,
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now
+        };
+        var createdContent = _contentRepository.Create(newsContent);
+        return Ok(createdContent);
+    }
+
+    [HttpPut("update")]
     public IActionResult UpdateNewsContent([FromQuery]Guid contentId, [FromBody]Dictionary<string, string?> updates)
     {
         var updatedContent = _contentRepository.Update<NewsContent>(contentId, Language.SV, updates);
@@ -71,7 +85,8 @@ public class NewsController : ControllerBase
     public IActionResult GetNewsContent()
     {
         var news = _contentRepository
-            .QueryActiveVersions<NewsContent>(Language.SV)
+            .QueryActiveVersions<Content>(Language.SV)
+            .Include(x => x.ContentRoot)
             .ToList();
 
         return Ok(news);
@@ -84,6 +99,7 @@ public class NewsController : ControllerBase
         var latestNews = _contentRepository
             .QueryActiveVersions<NewsContent>(Language.SV)
             .Where(x => x.Created > fromDate)
+            .Include(x => x.ContentRoot)
             .ToList();
 
         return Ok(latestNews);
