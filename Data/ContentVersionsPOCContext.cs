@@ -45,8 +45,7 @@ namespace ContentVersionsPOC.Data
                 entity.HasOne(v => v.ContentRoot)
                     .WithMany()
                     .HasForeignKey(x => x.ContentId);
-                entity.HasDiscriminator(x => x.ContentType)
-                    .RegisterContentDiscriminators();
+                entity.HasDiscriminator<string>("ContentTypeDiscriminator");
             });
 
             modelBuilder.RegisterContentTypes();
