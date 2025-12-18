@@ -1,7 +1,11 @@
-﻿using ContentVersionsPOC.Data.Enums;
+﻿using ContentVersionsPOC.Attributes;
+using ContentVersionsPOC.Data.Enums;
+using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models
 {
+    [JsonDerivedType(typeof(EventContent), nameof(EventContent))]
+    [ContentType(ContentType.Event)]
     public class EventContent : Content
     {
         public EventContent()

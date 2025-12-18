@@ -1,6 +1,11 @@
-﻿using ContentVersionsPOC.Data.Enums;
+﻿using ContentVersionsPOC.Attributes;
+using ContentVersionsPOC.Data.Enums;
 using ContentVersionsPOC.Data.Models;
+using ContentVersionsPOC.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace ContentVersionsPOC.Data
 {
@@ -33,8 +38,7 @@ namespace ContentVersionsPOC.Data
 
             modelBuilder.Entity<Content>(entity =>
             {
-                modelBuilder
-                    .Entity<Content>().HasKey(x => x.VersionId);
+                entity.HasKey(x => x.VersionId);
                 entity.HasOne(x => x.LanguageBranch)
                     .WithMany(x => x.Versions)
                     .HasForeignKey(x => new { x.ContentId, x.Language });
@@ -42,9 +46,10 @@ namespace ContentVersionsPOC.Data
                     .WithMany()
                     .HasForeignKey(x => x.ContentId);
                 entity.HasDiscriminator(x => x.ContentType)
-                    .HasValue<NewsContent>(ContentType.News)
-                    .HasValue<EventContent>(ContentType.Event);
+                    .RegisterContentDiscriminators();
             });
+
+            modelBuilder.RegisterContentTypes();
 
             base.OnModelCreating(modelBuilder);
         }

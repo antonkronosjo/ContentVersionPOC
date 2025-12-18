@@ -3,9 +3,8 @@ using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models;
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "contentType")]
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "contentType2")]
 [JsonDerivedType(typeof(NewsContent), nameof(NewsContent))]
-[JsonDerivedType(typeof(EventContent), nameof(EventContent))]
 public abstract class Content
 {
     public Content()
@@ -20,6 +19,8 @@ public abstract class Content
     public Guid VersionId { get; set; }
     public Guid ContentId { get; set; }
     public ContentRoot ContentRoot { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public ContentType ContentType { get; private set; }
     public Language Language { get; set; }
 

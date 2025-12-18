@@ -1,11 +1,13 @@
 ﻿using ContentVersionsPOC.Attributes;
 using ContentVersionsPOC.Data.Enums;
+using System.Text.Json.Serialization;
 
 namespace ContentVersionsPOC.Data.Models
 {
+    [JsonDerivedType(typeof(NewsContent), nameof(NewsContent))]
+    [ContentType(ContentType.News)]
     public class NewsContent : Content
     {
-
         public NewsContent(Guid versionId, Language language) : base(versionId, language)
         {
             
