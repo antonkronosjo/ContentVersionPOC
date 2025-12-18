@@ -1,5 +1,4 @@
-﻿using ContentVersionsPOC.Data;
-using ContentVersionsPOC.Data.Enums;
+﻿using ContentVersionsPOC.Data.Enums;
 using ContentVersionsPOC.Data.Models;
 using ContentVersionsPOC.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -97,7 +96,7 @@ public class ContentController : ControllerBase
         var fromDate = DateTime.UtcNow.AddMinutes(-1);
         var latestNews = _contentRepository
             .QueryActiveVersions<NewsContent>(Language.SV)
-            .Where(x => x.Created > fromDate)
+            .Where(x => x.VersionCreated > fromDate)
             .Include(x => x.ContentRoot)
             .ToList();
 
