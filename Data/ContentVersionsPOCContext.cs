@@ -1,4 +1,5 @@
-﻿using ContentVersionsPOC.Data.Models;
+﻿using ContentVersionsPOC.Data.Enums;
+using ContentVersionsPOC.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContentVersionsPOC.Data
@@ -16,29 +17,34 @@ namespace ContentVersionsPOC.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Content>().ToTable("ContentVersions");
-            modelBuilder.Entity<NewsContent>().HasBaseType<Content>().ToTable("News");
-            modelBuilder.Entity<EventContent>().HasBaseType<Content>().ToTable("Events");
+            modelBuilder.Entity<ContentRoot>(entity =>
+            {
+                entity.HasKey(x => x.ContentId);
+            });
 
-            modelBuilder.Entity<ContentRoot>().HasKey(x => x.ContentId);
+            modelBuilder.Entity<LanguageBranch>(entity => {
+                entity.HasKey(x => new { x.ContentId, x.Language });
+                entity.HasOne(x => x.ActiveVersion)
+                    .WithMany()
+                    .HasForeignKey(x => x.ActiveVersionId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
-            modelBuilder.Entity<Content>().HasKey(x => x.VersionId);
-            modelBuilder.Entity<Content>()
-                .HasOne(x => x.LanguageBranch)
-                .WithMany(x => x.Versions)
-                .HasForeignKey(x => new { x.ContentId, x.Language });
-            modelBuilder.Entity<Content>()
-                .HasOne(v => v.ContentRoot)
-                .WithMany()
-                .HasForeignKey(x => x.ContentId);
-
-            modelBuilder.Entity<LanguageBranch>().HasKey(x => new { x.ContentId, x.Language });
-            modelBuilder.Entity<LanguageBranch>()
-                .HasOne(x => x.ActiveVersion)
-                .WithMany()
-                .HasForeignKey(x => x.ActiveVersionId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Content>(entity =>
+            {
+                modelBuilder
+                    .Entity<Content>().HasKey(x => x.VersionId);
+                entity.HasOne(x => x.LanguageBranch)
+                    .WithMany(x => x.Versions)
+                    .HasForeignKey(x => new { x.ContentId, x.Language });
+                entity.HasOne(v => v.ContentRoot)
+                    .WithMany()
+                    .HasForeignKey(x => x.ContentId);
+                entity.HasDiscriminator(x => x.ContentType)
+                    .HasValue<NewsContent>(ContentType.News)
+                    .HasValue<EventContent>(ContentType.Event);
+            });
 
             base.OnModelCreating(modelBuilder);
         }

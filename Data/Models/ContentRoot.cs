@@ -11,7 +11,7 @@ public class ContentRoot
         
     }
 
-    public ContentRoot(Guid contentId, Type contentType)
+    public ContentRoot(Guid contentId)
     {
         ContentId = contentId;
         Created = DateTime.UtcNow;

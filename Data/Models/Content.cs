@@ -20,6 +20,7 @@ public abstract class Content
     public Guid VersionId { get; set; }
     public Guid ContentId { get; set; }
     public ContentRoot ContentRoot { get; set; }
+    public ContentType ContentType { get; private set; }
     public Language Language { get; set; }
 
     [JsonIgnore]

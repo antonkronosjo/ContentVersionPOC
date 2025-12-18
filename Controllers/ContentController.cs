@@ -1,7 +1,6 @@
 ﻿using ContentVersionsPOC.Data;
 using ContentVersionsPOC.Data.Enums;
 using ContentVersionsPOC.Data.Models;
-using ContentVersionsPOC.Data.Summaries;
 using ContentVersionsPOC.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +52,7 @@ public class ContentController : ControllerBase
         //_contentRepository.Update<EventContent>(contentId, updates);
         //_contentRepository.Update<ContentVersion>(contentId, updates);
 
-        return Ok(new ContentSummary(updatedContent));
+        return Ok(updatedContent);
     }
 
     private IActionResult POC_API()

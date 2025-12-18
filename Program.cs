@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<ContentVersionsPOCContext>(options => options.UseSqlite("Data Source=app15.db"));
+builder.Services.AddDbContext<ContentVersionsPOCContext>(options => options.UseSqlite("Data Source=app16.db"));
 builder.Services.AddControllers();
 builder.Services.AddTransient<IContentRepository, ContentRepository>();
 

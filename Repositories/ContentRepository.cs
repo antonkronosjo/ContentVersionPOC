@@ -41,7 +41,7 @@ public class ContentRepository : IContentRepository
         using var transaction = _context.Database.BeginTransaction();
         try
         {
-            var contentRoot = new ContentRoot(Guid.NewGuid(), typeof(T));
+            var contentRoot = new ContentRoot(Guid.NewGuid());
             _context.Add(contentRoot);
 
             var languageBranch = contentRoot.AddNewLanguageBranch(initialVersion.Language);
