@@ -30,15 +30,15 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
-app.UseSpa(spa =>
-{
-    spa.Options.SourcePath = "ClientApp";
+//app.UseSpa(spa =>
+//{
+//    spa.Options.SourcePath = "ClientApp";
 
-    if (app.Environment.IsDevelopment())
-    {
-        spa.UseReactDevelopmentServer(npmScript: "start");
-    }
-});
+//    if (app.Environment.IsDevelopment())
+//    {
+//        spa.UseReactDevelopmentServer(npmScript: "start");
+//    }
+//});
 app.MapFallbackToFile("index.html");
 app.Run();
 
