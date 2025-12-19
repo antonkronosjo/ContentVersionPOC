@@ -1,5 +1,4 @@
-﻿using ContentVersionsPOC.Data;
-using ContentVersionsPOC.Data.Enums;
+﻿using ContentVersionsPOC.Data.Enums;
 using ContentVersionsPOC.Data.Models;
 using ContentVersionsPOC.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +17,8 @@ public class ContentController : ControllerBase
         _contentRepository = contentRepository;
     }
 
-    [HttpPost("/news/create")]
+    [HttpPost]
+    [Route("news/create")]
     public IActionResult AddNewsContent([FromQuery] string heading)
     {
         var newsContent = new NewsContent(Guid.NewGuid(), Language.SV)
@@ -30,7 +30,8 @@ public class ContentController : ControllerBase
         return Ok(createdContent);
     }
 
-    [HttpPost("/events/create")]
+    [HttpPost]
+    [Route("events/create")]
     public IActionResult AddEventContent([FromQuery] string heading)
     {
         var newsContent = new EventContent(Guid.NewGuid(), Language.SV)
@@ -43,7 +44,8 @@ public class ContentController : ControllerBase
         return Ok(createdContent);
     }
 
-    [HttpPut("update")]
+    [HttpPut]
+    [Route("update")]
     public IActionResult UpdateNewsContent([FromQuery]Guid contentId, [FromBody]Dictionary<string, string?> updates)
     {
         var updatedContent = _contentRepository.Update<NewsContent>(contentId, Language.SV, updates);
@@ -80,7 +82,8 @@ public class ContentController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("all")]
+    [HttpGet]
+    [Route("all")]
     public IActionResult GetNewsContent()
     {
         var news = _contentRepository
@@ -91,13 +94,14 @@ public class ContentController : ControllerBase
         return Ok(news);
     }
 
-    [HttpGet("latest")]
+    [HttpGet]
+    [Route("latest")]
     public IActionResult GetLatestNews()
     {
         var fromDate = DateTime.UtcNow.AddMinutes(-1);
         var latestNews = _contentRepository
             .QueryActiveVersions<NewsContent>(Language.SV)
-            .Where(x => x.Created > fromDate)
+            .Where(x => x.VersionCreated > fromDate)
             .Include(x => x.ContentRoot)
             .ToList();
 
