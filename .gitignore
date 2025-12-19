@@ -1,6 +1,6 @@
 # Build results
 bin/
-obj/
+#obj/
 [Dd]ebug/
 [Rr]elease/
 x64/
